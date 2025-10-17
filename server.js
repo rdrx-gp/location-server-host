@@ -1,31 +1,29 @@
-// server.js - simple location receiver + getter
 import express from "express";
 import bodyParser from "body-parser";
-import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Middleware to parse JSON
 app.use(bodyParser.json());
 
-// in-memory last location (replace with DB if needed)
-let lastLocation = { lat: null, lon: null, acc: null, time: null, source: null };
-
+// ✅ This route will receive location
 app.post("/receive-location", (req, res) => {
-  const { lat, lon, acc, t, source } = req.body;
-  if (typeof lat !== "number" || typeof lon !== "number") {
-    return res.status(400).json({ error: "lat and lon must be numbers" });
-  }
-  lastLocation = { lat, lon, acc: acc ?? null, time: t ?? Date.now(), source: source ?? "web" };
-  console.log("Received location:", lastLocation);
-  return res.json({ status: "ok" });
+  const { lat, lon, acc, t } = req.body;
+  console.log(`📍 Location received:
+  Latitude: ${lat}
+  Longitude: ${lon}
+  Accuracy: ${acc}
+  Time: ${new Date(t).toLocaleString()}`);
+
+  res.send("Location received ✅");
 });
 
-app.get("/get-location", (req, res) => {
-  if (lastLocation.lat === null) return res.status(204).send(); // no content yet
-  return res.json(lastLocation);
+// Test root route
+app.get("/", (req, res) => {
+  res.send("Server is running 🚀");
 });
 
-app.get("/", (req, res) => res.send("Location server running"));
+// Start server
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
